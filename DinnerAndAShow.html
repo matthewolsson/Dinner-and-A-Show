@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<link href='http://fonts.googleapis.com/css?family=Coming+Soon' rel='stylesheet' type='text/css'>
+ 	<title>Dinner and A Show&trade;</title>
+ 	<style>
+ 	
+ 	#search{
+ 		box-shadow:inset 0px 1px 0px 0px #f7c5c0;
+ 		background:linear-gradient(to bottom, #fc8d83 5%, #e4685d 100%);
+ 		background-color:#fc8d83;
+ 		border-radius:6px;
+ 		border:1px solid #d83526;
+ 		display:inline-block;
+ 		cursor:pointer;
+ 		color:#ffffff;
+ 		font-size:15px;
+ 		font-weight:bold;
+ 		padding:6px 24px;
+ 		text-decoration:none;
+ 		text-shadow:0px 1px 0px #b23e35;
+ 		margin-right:2em;
+ 	}
+ 	
+ 	#search:hover {
+ 		background:linear-gradient(to bottom, #e4685d 5%, #fc8d83 100%);
+ 		background-color:#e4685d;
+ 	}
+ 	
+ 	#search:active {
+ 		position:relative;
+ 		top:1px;
+ 	}
+ 	
+ 	#currentaddress{
+ 		font-size:16px;
+ 	}
+ 	
+ 	#map-div{
+ 		margin: 0;
+ 		padding: 0;
+ 		width:542px;
+ 		height:300px;
+ 		border:1px solid black;
+ 	}
+ 	</style>
+	<!-- Import jQuery -->
+	<script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDjaCd3Vf_Jy-BubQ1y_-cKxzw8WodRiw8"></script>
+	<script>
+		"use strict";
+		(function(){
+			var RETURN_KEY = 13;
+			var map,infowindow,geocoder,markers = [];
+		
+			window.onload = init;
+			
+			function init(){
+				document.querySelector("#search").onclick = search;
+				document.querySelector("#currentaddress").onkeyup = doKeyup;
+
+				var mapOptions = {
+					center: { lat: 39.828127, lng: -98.579404},
+					zoom: 3
+				};
+
+				map = new google.maps.Map(document.getElementById('map-div'),mapOptions);
+				geocoder = new google.maps.Geocoder(); // used for address lookup
+			}
+			
+			function doKeyup(e){
+				if(e.keyCode == RETURN_KEY){
+					search();
+				}
+			}
+
+			function zoomOnFirstResult(){
+				if(markers.length === 0) return;
+				var temp = {lat:markers[0].position.k,lng:markers[0].position.B};
+				debugger;
+				map.setCenter(temp);
+				map.setZoom(4);
+			}
+			
+			function search(){
+				clearMarkers();
+				// get value of area code
+				var currentAddress = document.querySelector("#currentaddress").value;
+				
+				// get rid of any leading and trailing spaces
+				currentAddress = currentAddress.trim();
+				
+				// if there's no band to search then bail out of the function (return does this)
+				if(currentAddress.length < 1) return;
+				
+				document.querySelector("#currentaddress").innerHTML = "<b>Searching for " + currentAddress + "</b>";
+				
+				// https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple
+				geocoder.geocode( { 'address': currentAddress}, function(results, status) {
+					if (status == google.maps.GeocoderStatus.OK) {
+					    map.setCenter(results[0].geometry.location);
+					    var marker = new google.maps.Marker({
+					        map: map,
+					        position: results[0].geometry.location,
+					    });
+					    markers.push(marker);
+					    map.setZoom(12);
+					} else {
+					    alert('Address could not be found: ' + status);
+					}
+				});
+
+				// Find restuarants nearby and place markers for them as well
+			}
+
+			function addMarker(latitude,longitude,title){
+				var position = {lat:latitude,lng:longitude};
+				var marker = new google.maps.Marker({position:position, map:map});
+				marker.title = title;
+				google.maps.event.addListener(marker, 'click', function(e){ makeInfoWindow(this.position.this.title); });
+				markers.push(marker);
+			}
+			
+			function makeInfoWindow(position,msg){
+				if(infowindow) infowindow.close();
+
+				infowindow = new google.maps.InfoWindow({
+					map: map,
+					position:position,
+					content: "<b>" + msg + "</b>"
+				});
+			}
+
+			function clearMarkers(){
+				if(infowindow){ infowindow.close(); }
+				for(var i = 0; i < markers.length; i++){
+					markers[i].setMap(null);
+				}
+				markers = [];
+			}
+	  	}());
+  	</script>
+</head>
+<body>
+<div>
+	<h1>Dinner and A Show</h1>
+	<p><i>Enter your current address and time to see restuarants and movies in your area</i></p>
+	<button type="button" id="search">Find Dinner and A Show!</button>
+	Current Address -&gt; <input id="currentaddress" type="text" size="30" maxlength="60" value="Avicii" autofocus /> 
+	Time -&gt; 
+	<select id="time">
+  		<option value="0">00:00 AM</option>
+  		<option value="0.5">00:30 AM</option>
+  		<option value="1">01:00 AM</option>
+  		<option value="1.5">01:30 AM</option>
+  		<option value="2">02:00 AM</option>
+  		<option value="2.5">02:30 AM</option>
+  		<option value="3">03:00 AM</option>
+  		<option value="3.5">03:30 AM</option>
+  		<option value="4">04:00 AM</option>
+  		<option value="4.5">04:30 AM</option>
+  		<option value="5">05:00 AM</option>
+  		<option value="5.5">05:30 AM</option>
+  		<option value="6">06:00 AM</option>
+  		<option value="6.5">06:30 AM</option>
+  		<option value="7">07:00 AM</option>
+  		<option value="7.5">07:30 AM</option>
+  		<option value="8">08:00 AM</option>
+  		<option value="8.5">08:30 AM</option>
+  		<option value="9">09:00 AM</option>
+  		<option value="9.5">09:30 AM</option>
+  		<option value="10">10:00 AM</option>
+  		<option value="10.5">10:30 AM</option>
+  		<option value="11">11:00 AM</option>
+  		<option value="11.5">11:30 AM</option>
+  		<option value="12">12:00 PM</option>
+  		<option value="12.5">12:30 PM</option>
+  		<option value="13">13:00 PM</option>
+  		<option value="13.5">13:30 PM</option>
+  		<option value="14">14:00 PM</option>
+  		<option value="14.5">14:30 PM</option>
+  		<option value="15">15:00 PM</option>
+  		<option value="15.5">15:30 PM</option>
+  		<option value="16">16:00 PM</option>
+  		<option value="16.5">16:30 PM</option>
+  		<option value="17">17:00 PM</option>
+  		<option value="17.5">17:30 PM</option>
+  		<option value="18">18:00 PM</option>
+  		<option value="18.5">18:30 PM</option>
+  		<option value="19">19:00 PM</option>
+  		<option value="19.5">19:30 PM</option>
+  		<option value="20">20:00 PM</option>
+  		<option value="20.5">20:30 PM</option>
+  		<option value="21">21:00 PM</option>
+  		<option value="21.5">21:30 PM</option>
+  		<option value="22">22:00 PM</option>
+  		<option value="22.5">22:30 PM</option>
+    </select>
+	<div id="map-div"></div>
+</div>
+
+</body>
+</html>
