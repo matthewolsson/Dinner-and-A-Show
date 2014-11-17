@@ -80,7 +80,7 @@
 				var temp = {lat:markers[0].position.k,lng:markers[0].position.B};
 				debugger;
 				map.setCenter(temp);
-				map.setZoom(4);
+				map.setZoom(15);
 			}
 			
 			function search(){
@@ -105,7 +105,7 @@
 					        position: results[0].geometry.location,
 					    });
 					    markers.push(marker);
-					    map.setZoom(12);
+					    map.setZoom(15);
 					} else {
 					    alert('Address could not be found: ' + status);
 					}
@@ -150,8 +150,8 @@
 	Current Address -&gt; <input id="currentaddress" type="text" size="30" maxlength="60" value="Enter your address..." autofocus /> 
 	Time -&gt; 
 	<select id="time">
-  		<option value="0">00:00 AM</option>
-  		<option value="0.5">00:30 AM</option>
+  		<option value="0">12:00 AM</option>
+  		<option value="0.5">12:30 AM</option>
   		<option value="1">01:00 AM</option>
   		<option value="1.5">01:30 AM</option>
   		<option value="2">02:00 AM</option>
@@ -176,26 +176,28 @@
   		<option value="11.5">11:30 AM</option>
   		<option value="12">12:00 PM</option>
   		<option value="12.5">12:30 PM</option>
-  		<option value="13">13:00 PM</option>
-  		<option value="13.5">13:30 PM</option>
-  		<option value="14">14:00 PM</option>
-  		<option value="14.5">14:30 PM</option>
-  		<option value="15">15:00 PM</option>
-  		<option value="15.5">15:30 PM</option>
-  		<option value="16">16:00 PM</option>
-  		<option value="16.5">16:30 PM</option>
-  		<option value="17">17:00 PM</option>
-  		<option value="17.5">17:30 PM</option>
-  		<option value="18">18:00 PM</option>
-  		<option value="18.5">18:30 PM</option>
-  		<option value="19">19:00 PM</option>
-  		<option value="19.5">19:30 PM</option>
-  		<option value="20">20:00 PM</option>
-  		<option value="20.5">20:30 PM</option>
-  		<option value="21">21:00 PM</option>
-  		<option value="21.5">21:30 PM</option>
-  		<option value="22">22:00 PM</option>
-  		<option value="22.5">22:30 PM</option>
+  		<option value="13">01:00 PM</option>
+  		<option value="13.5">01:30 PM</option>
+  		<option value="14">02:00 PM</option>
+  		<option value="14.5">02:30 PM</option>
+  		<option value="15">03:00 PM</option>
+  		<option value="15.5">03:30 PM</option>
+  		<option value="16">04:00 PM</option>
+  		<option value="16.5">04:30 PM</option>
+  		<option value="17">05:00 PM</option>
+  		<option value="17.5">05:30 PM</option>
+  		<option value="18">06:00 PM</option>
+  		<option value="18.5">06:30 PM</option>
+  		<option value="19">07:00 PM</option>
+  		<option value="19.5">07:30 PM</option>
+  		<option value="20">08:00 PM</option>
+  		<option value="20.5">08:30 PM</option>
+  		<option value="21">09:00 PM</option>
+  		<option value="21.5">09:30 PM</option>
+  		<option value="22">10:00 PM</option>
+  		<option value="22.5">10:30 PM</option>
+  		<option value="23">11:00 PM</option>
+  		<option value="23.5">11:30 PM</option>
     </select>
 	<div id="map-div"></div>
 </div>
