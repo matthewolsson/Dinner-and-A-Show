@@ -1,6 +1,10 @@
 var RETURN_KEY = 13; // constant to enable searching with the enter key
 var map,infowindow,geocoder,markers = [];
-
+	
+var mLongitude,mLatitude;
+var movie_base_url = "http://data.tmsapi.com/v1/movies/showings?";
+var movie_api_key = "sm5ny69356s95875nkusjpcj";
+	
 window.onload = init;
 
 var searchedFood,searchedAddress;
@@ -71,6 +75,7 @@ function addressLookup(address, name, callback){
 		} else { alert('Address could not be found: ' + status); }
 		if(callback != undefined){callback(results[0].geometry.location);} // closures! neato!
 	});
+	
 }
 
 function doKeyup(e){ // search on enter key press
@@ -109,6 +114,12 @@ function addMarker(latitude,longitude,title){
 	marker.title = title;
 	google.maps.event.addListener(marker, 'click', function(e){ makeInfoWindow(position,title); });
 	markers.push(marker);
+	if(markers.length == 1)
+	{
+		mLatitude = latitude;
+		mLongitude = longitude;
+		searchMovies();
+	}
 }
 
 function makeInfoWindow(position,msg){
@@ -127,3 +138,125 @@ function clearMarkers(){
 	}
 	markers = [];
 }
+
+	function searchMovies(){
+		var date = new Date();
+		var day = date.getDate();
+		var month = date.getMonth() + 1;
+		var year = date.getFullYear();
+		
+		if(day<10) {
+			day='0'+day;
+		} 
+
+		if(month<10) {
+			month='0'+month;
+		}
+
+		var requestUri = movie_base_url +
+			"startDate=" + year + 
+			"-" + month +
+			"-" + day + 
+			"&lat=" + mLatitude + 
+			"&lng=" + mLongitude + 
+			"&api_key=" + movie_api_key;
+		console.log(requestUri);
+		$.getJSON(requestUri).done(function(data){movieJsonLoaded(data);});
+	}
+			
+	function movieJsonLoaded(obj){
+		if(obj.error){
+			document.querySelector("#movie-content").innerHTML = "<b>No Results Found</b>";
+		} else {
+			var allMovies = obj;
+			var bigString = "";
+			
+			for (var i=0;i<allMovies.length;i++){
+				var movieName = allMovies[i].title;
+				var genre;
+				if(allMovies[i].genres)
+				{
+					genre = allMovies[i].genres[0];
+				}
+				
+				var rating;
+				if(allMovies[i].ratings)
+				{
+					rating = allMovies[i].ratings[0].code;
+				}
+				var showtimes = getShowtimes(allMovies[i].showtimes);
+				
+				var line = "<p>";
+				line += "<h1>" + movieName + "</h1>";
+				if(genre){
+					line += "<em>Genre: " + genre + "</em> ";
+				}
+				else{
+					line += "<em>Genre: N/A</em> ";
+				}
+				if(rating){
+					line += "<em>Rating: " + rating + "</em> ";
+				}
+				else{
+					line += "<em>Rating: Not Rated</em> ";
+				}
+				line += showtimes;
+				line += "</p>";
+				bigString += line;
+			}
+			document.querySelector("#movie-content").innerHTML = bigString;
+		}
+	}
+	
+	function getShowtimes(movies){
+		var line, theater, time;
+		for(var i = 0;i < movies.length;i++){
+			time = formatTime(movies[i].dateTime);
+			if(theater){
+				if(theater == movies[i].theatre.name){
+					line += ", " + time;
+				}
+				else{
+					theater = movies[i].theatre.name;
+					line += "<br>" + theater + " - " + time;
+				}
+			}
+			else{
+				theater = movies[i].theatre.name;
+				line = "<br>" + theater + " - " + time;
+			}
+		}
+		return line;
+	}	
+	
+	function formatTime(time){
+		var splitString = time.split("T");
+		var times = splitString[1].split(":");
+		var hours = parseInt(times[0]);
+		var minutes = parseInt(times[1]);
+		var minuteString;
+		var pm = false;
+		var end;
+		if(hours > 12){
+			hours -= 12;
+			pm = true;
+		}
+		else if(hours == 0){
+			hours = 12;
+		}
+		if(minutes < 10)
+		{
+			minuteString = "0" + minutes;
+		}
+		else{
+			minuteString = minutes;
+		}
+		
+		if(pm){
+			end = "pm";
+		}
+		else{
+			end = "am";
+		}
+		return hours + ":" + minuteString + end;
+	}
