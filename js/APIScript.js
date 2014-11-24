@@ -4,7 +4,7 @@ var map,infowindow,geocoder,markers = [];
 var mLongitude,mLatitude;
 var movie_base_url = "http://data.tmsapi.com/v1/movies/showings?";
 var movie_api_key = "sm5ny69356s95875nkusjpcj";
-	
+var date;
 window.onload = init;
 
 var searchedFood,searchedAddress;
@@ -140,7 +140,7 @@ function clearMarkers(){
 }
 
 	function searchMovies(){
-		var date = new Date();
+		date = new Date();
 		var day = date.getDate();
 		var month = date.getMonth() + 1;
 		var year = date.getFullYear();
@@ -168,17 +168,42 @@ function clearMarkers(){
 		if(obj.error){
 			document.querySelector("#movie-content").innerHTML = "<b>No Results Found</b>";
 		} else {
+			var count = 0;
 			var allMovies = obj;
 			var bigString = "";
-			
+			//filter search by genre
+			var genreFilter = document.querySelector("#Genre").value;
 			for (var i=0;i<allMovies.length;i++){
 				var movieName = allMovies[i].title;
 				var genre;
+				//if the movie has a genre then get them 
 				if(allMovies[i].genres)
 				{
-					genre = allMovies[i].genres[0];
+					//used if there is more than one genre
+					if(allMovies[i].genres.length > 1)
+					{
+						genre = allMovies[i].genres[0];
+						for(var j = 1; j < allMovies[i].genres.length;j++){
+							genre += ", " + allMovies[i].genres[j];
+						}
+					}
+					else{
+						genre = allMovies[i].genres[0];
+					}
+					//check to see if the genre matched the filter
+					var genreLowerCase = genre.toLowerCase();
+					var genreFilterLowerCase = genreFilter.toLowerCase();
+					if(genreLowerCase.indexOf(genreFilterLowerCase) == -1 && genreFilter != " "){
+						continue;
+					}
 				}
+				//if you're searching for all movies then you don't need to filter through the search
+				else if(genreFilter != " "){
+					continue;
+				}
+				count++;
 				
+				//format the string
 				var rating;
 				if(allMovies[i].ratings)
 				{
@@ -204,59 +229,120 @@ function clearMarkers(){
 				line += "</p>";
 				bigString += line;
 			}
+			//If no movies were found then let the user know
+			if(count == 0){
+				bigString = "<b>No Results Found</b>";
+			}
 			document.querySelector("#movie-content").innerHTML = bigString;
 		}
 	}
 	
 	function getShowtimes(movies){
-		var line, theater, time;
+		var line, theater, time, ticektUrl;
+		var count = 0; //used to check if there are any showtimes for the movie left
+		
 		for(var i = 0;i < movies.length;i++){
-			time = formatTime(movies[i].dateTime);
+			time = formatTime(movies[i].dateTime); //this changes time from military to standard
+			//if the first theater hasn't been instantiated yet
 			if(theater){
+				//if it's still on the current theater then add the time to it
 				if(theater == movies[i].theatre.name){
-					line += ", " + time;
+					//if formatTime returns a 0, that means the timing for the movie has passed
+					//if it hasn't passed, add it to the list
+					if(time != 0){
+						line += time + " ";
+						count++;
+					}
+					//if there aren't any times left and none have shown up, then inform the user
+					if(movies[i+1] == null && count == 0){
+						line += "No more showtimes for today";
+					}
 				}
 				else{
+				//inform the user if there aren't any times left
+					if(count == 0){
+						line += "No more showtimes for today";
+					}
+					count = 0;
+					//if there is a link to fandango then give it to the user
+					if(movies[i-1].ticketURI)
+					{
+						line += '<br><a href="' + movies[i-1].ticketURI + '">Buy tickets here!</a>';
+					}
 					theater = movies[i].theatre.name;
-					line += "<br>" + theater + " - " + time;
+					line += "<br><br>" + theater + " - ";
+					//add the time if it hasn't passed
+					if(time != 0)
+					{
+						count++;
+						line += time + " ";
+					}
+					// no timings available
+					if(movies[i+1] == null && count == 0){
+						line += "No more showtimes for today";
+					}
 				}
 			}
 			else{
+				//first theater used to check later
 				theater = movies[i].theatre.name;
-				line = "<br>" + theater + " - " + time;
+				line = "<br>" + theater + " - ";
+				if(time != 0)
+				{
+					count++;
+					line += time + " ";
+				}
+				if(movies[i+1] == null && count == 0){
+					line += "No more showtimes for today";
+				}
 			}
 		}
 		return line;
 	}	
 	
+	//used to convert military time into standard and also check the timing to the current time
+	//if the timing has passed, then return 0
 	function formatTime(time){
+		//the string is given as Month-Day-YearTHours:Minutes
 		var splitString = time.split("T");
 		var times = splitString[1].split(":");
 		var hours = parseInt(times[0]);
 		var minutes = parseInt(times[1]);
-		var minuteString;
+		var minuteString, end;
 		var pm = false;
-		var end;
-		if(hours > 12){
-			hours -= 12;
-			pm = true;
-		}
-		else if(hours == 0){
-			hours = 12;
-		}
-		if(minutes < 10)
-		{
-			minuteString = "0" + minutes;
-		}
-		else{
-			minuteString = minutes;
-		}
 		
-		if(pm){
-			end = "pm";
+		//check current time to the movie timing
+		//if it the current time is greater than the movie time the return 0
+		var currentHour = date.getHours();
+		var currentMinute = date.getMinutes();
+		
+		//used to turn the time into HoursMinutes so 10:15 would become 1015
+		var currentTime = (currentHour * 100) + currentMinute;
+		var movieTime = (hours * 100) + minutes;
+		if(currentTime < movieTime){
+			//convert military time to standard
+			if(hours > 12){
+				hours -= 12;
+				pm = true;
+			}
+			else if(hours == 0){
+				hours = 12;
+			}
+			if(minutes < 10)
+			{
+				minuteString = "0" + minutes;
+			}
+			else{
+				minuteString = minutes;
+			}
+			
+			if(pm){
+				end = "pm";
+			}
+			else{
+				end = "am";
+			}
+			return hours + ":" + minuteString + end;
 		}
-		else{
-			end = "am";
-		}
-		return hours + ":" + minuteString + end;
+		return 0;
 	}
