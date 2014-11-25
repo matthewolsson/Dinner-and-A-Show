@@ -1,32 +1,33 @@
-#search{
+#search, #autoAddress{
 	box-shadow:inset 0px 1px 0px 0px #f7c5c0;
-	background:linear-gradient(to bottom, #fc8d83 5%, #e4685d 100%);
-	background-color:#fc8d83;
-	border-radius:6px;
-	border:1px solid #d83526;
+	background:linear-gradient(to bottom, #262626 5%, #4C4C4C 100%);
 	display:inline-block;
 	cursor:pointer;
-	color:#ffffff;
+	color:#FFFF00;
 	font-size:15px;
 	font-weight:bold;
 	padding:6px 24px;
 	text-decoration:none;
-	text-shadow:0px 1px 0px #b23e35;
 	margin-right:2em;
 }
 
-#search:hover {
-	background:linear-gradient(to bottom, #e4685d 5%, #fc8d83 100%);
-	background-color:#e4685d;
+#search:hover, #autoAddress:hover {
+	background:linear-gradient(to bottom, #4C4C4C 5%, #262626 100%);
 }
 
-#search:active {
+body{
+    background-color: #666666;
+}
+
+#search:active, #autoAddress:active {
 	position:relative;
 	top:1px;
 }
 
 #addressSearch,#foodSearch{
 	font-size:16px;
+    background-color: #666666;
+    color: #FFFF00;
 }
 
 #map-div{
@@ -95,7 +96,45 @@
     -moz-transform:rotate(315deg) translate(0, -40px) scale(1.4);
     -webkit-transform:rotate(315deg) translate(0, -40px) scale(1.4);opacity:1;}
 
-#movie-content{
-    position:relative;
+
+.accordion, .accordion * {
+    -webkit-box-sizing:border-box; 
+    -moz-box-sizing:border-box; 
+    box-sizing:border-box;
+}
+ 
+.accordion {
     margin-top:310px;
+    overflow:hidden;
+    box-shadow:0px 1px 3px rgba(0,0,0,0.25);
+    border-radius:3px;
+    background:#f7f7f7;
+}
+ 
+.accordion-section-title {
+    width:100%;
+    padding:15px;
+    display:inline-block;
+    border-bottom:1px solid #1a1a1a;
+    background:#333;
+    transition:all linear 0.15s;
+    font-size:1.200em;
+    text-shadow:0px 1px 0px #1a1a1a;
+    color:#fff;
+}
+ 
+.accordion-section-title.active, .accordion-section-title:hover {
+    background:#4c4c4c;
+    text-decoration:none;
+}
+ 
+.accordion-section:last-child .accordion-section-title {
+    border-bottom:none;
+}
+ 
+.accordion-section-content {
+    padding:15px;
+    display:none;
+    background-color:#808080;
+    color:#fff;
 }

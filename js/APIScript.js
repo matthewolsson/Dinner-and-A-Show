@@ -1,9 +1,11 @@
+"use strict"
+
 var RETURN_KEY = 13; // constant to enable searching with the enter key
 var map,infowindow,geocoder,markers = [];
 	
 var mLongitude,mLatitude;
 var movie_base_url = "http://data.tmsapi.com/v1/movies/showings?";
-var movie_api_key = "sm5ny69356s95875nkusjpcj";
+var movie_api_key = "zaebbj25z9taddgcmktq4tnn";
 var date;
 window.onload = init;
 
@@ -31,6 +33,7 @@ function init(){
 	};
 	map = new google.maps.Map(document.getElementById('map-div'),mapOptions);
 	geocoder = new google.maps.Geocoder(); // used for address lookup
+
 }
 
 function constructYelpURL() {
@@ -177,7 +180,7 @@ function searchMovies(){
 		
 function movieJsonLoaded(obj){
 	if(obj.error){
-		document.querySelector("#movie-content").innerHTML = "<b>No Results Found</b>";
+		document.querySelector(".accordion").innerHTML = "<b>No Results Found</b>";
 	} else {
 		var count = 0;
 		var allMovies = obj;
@@ -222,13 +225,15 @@ function movieJsonLoaded(obj){
 			}
 			var showtimes = getShowtimes(allMovies[i].showtimes);
 			
-			var line = "<p>";
-			line += "<h1>" + movieName + "</h1>";
+			
+			var line = "<div class='accordion-section'>";
+			line += "<a class='accordion-section-title href='#accordion-" + i + "'>";
+			line += movieName+"<br>";
 			if(genre){
-				line += "<em>Genre: " + genre + "</em> ";
+				line += "<em>Genre: " + genre + "</em><br> ";
 			}
 			else{
-				line += "<em>Genre: N/A</em> ";
+				line += "<em>Genre: N/A</em><br>";
 			}
 			if(rating){
 				line += "<em>Rating: " + rating + "</em> ";
@@ -236,22 +241,43 @@ function movieJsonLoaded(obj){
 			else{
 				line += "<em>Rating: Not Rated</em> ";
 			}
+			line += "</a><div id='accordion-"+i+"' class='accordion-section-content'><p>";
 			line += showtimes;
-			line += "</p>";
+			line += "</p></div>";
+			line += "</div>";
 			bigString += line;
 		}
 		//If no movies were found then let the user know
 		if(count == 0){
 			bigString = "<b>No Results Found</b>";
 		}
-		document.querySelector("#movie-content").innerHTML = bigString;
+		document.querySelector(".accordion").innerHTML = bigString;
+		setAccordion();
 	}
+}
+
+//http://inspirationalpixels.com/tutorials/creating-an-accordion-with-html-css-jquery
+function setAccordion() {
+    function close_accordion_section(temp) {
+        $(temp).removeClass('active');
+        $(temp).siblings('.accordion-section-content').slideUp(300).removeClass('open');
+    }
+    $('.accordion-section-title').click(function(e) {
+        if($(e.target).is('.active')) {
+            close_accordion_section(this);
+        }else {
+            // Add active class to section title
+            $(this).addClass('active');
+            // Open up the hidden content panel
+            $(this).siblings('.accordion-section-content').slideDown(300).addClass('open');  
+        }
+        e.preventDefault();
+    });
 }
 
 function getShowtimes(movies){
 	var line, theater, time, ticektUrl;
 	var count = 0; //used to check if there are any showtimes for the movie left
-	
 	for(var i = 0;i < movies.length;i++){
 		time = formatTime(movies[i].dateTime); //this changes time from military to standard
 		//if the first theater hasn't been instantiated yet
@@ -281,7 +307,7 @@ function getShowtimes(movies){
 					line += '<br><a href="' + movies[i-1].ticketURI + '">Buy tickets here!</a>';
 				}
 				theater = movies[i].theatre.name;
-				line += "<br><br>" + theater + " - ";
+				line += "<br>" + theater + " - ";
 				//add the time if it hasn't passed
 				if(time != 0)
 				{
@@ -297,7 +323,7 @@ function getShowtimes(movies){
 		else{
 			//first theater used to check later
 			theater = movies[i].theatre.name;
-			line = "<br>" + theater + " - ";
+			line = theater + " - ";
 			if(time != 0)
 			{
 				count++;
@@ -366,3 +392,4 @@ function rotate() {
     if (spinCount==360) { spinCount = 0 }
     spinCount+=45;
 }
+

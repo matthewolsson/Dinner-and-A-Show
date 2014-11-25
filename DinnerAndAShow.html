@@ -4,7 +4,6 @@
 	<meta charset="utf-8" />
 	<link href='http://fonts.googleapis.com/css?family=Coming+Soon' rel='stylesheet' type='text/css'>
 	<title>Dinner and A Show&trade;</title>
-	<!-- Import jQuery -->
 	<link rel="stylesheet" type="text/css" href="css/styles.css">
 	<script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
 	<script src="js/APIScript.js"></script>
@@ -40,6 +39,7 @@
 		<option value="War">War</option>
 		<option value="Western">Western</option>
 	</select> <br />
+	<button type="button" id="autoAddress">Find My Address For Me</button> <br />
 	Input your current address or area code -&gt; <input id="addressSearch" type="text" size="30" maxlength="60" value="ex:5555 Fake St." autofocus /> <br />
 	What are you in the mood to eat? -&gt; <input id="foodSearch" type="text" size="30" maxlength="60" value="ex:pizza,sushi" autofocus />
 	<div id="map-container">
@@ -56,7 +56,7 @@
         </div>
 		<div id="map-div"></div>
 	</div>
-	<div id="movie-content">MOVIES GO HERE</div>
+	<div class="accordion">MOVIES GO HERE</div>
 </div>
 
 </body>
