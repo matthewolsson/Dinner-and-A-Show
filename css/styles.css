@@ -15,11 +15,11 @@
 	background:linear-gradient(to bottom, #4C4C4C 5%, #262626 100%);
 }
 
-h1,h2{
+h1,h2,#flavor-text{
     font-family: 'Dancing Script', cursive;
 }
 
-h1{
+#title{
     font-size: 50px;
 }
 
