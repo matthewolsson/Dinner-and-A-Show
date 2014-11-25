@@ -3,7 +3,7 @@
 	background:linear-gradient(to bottom, #262626 5%, #4C4C4C 100%);
 	display:inline-block;
 	cursor:pointer;
-	color:#FFFF00;
+	color:#E6B800;
 	font-size:15px;
 	font-weight:bold;
 	padding:6px 24px;
@@ -15,8 +15,19 @@
 	background:linear-gradient(to bottom, #4C4C4C 5%, #262626 100%);
 }
 
+h1,h2{
+    font-family: 'Dancing Script', cursive;
+}
+
+h1{
+    font-size: 50px;
+}
+
 body{
     background-color: #666666;
+    color: #E6B800;
+    font-family: 'Share', cursive;
+    font-style: italic;
 }
 
 #search:active, #autoAddress:active {
@@ -24,31 +35,34 @@ body{
 	top:1px;
 }
 
-#addressSearch,#foodSearch{
+#addressSearch,#foodSearch,#Genre{
 	font-size:16px;
     background-color: #666666;
-    color: #FFFF00;
+    color: #E6B800;
+    font-family: 'Share', cursive;
+    font-style: italic;
 }
 
 #map-div{
-	margin: 0;
+    color: #000000;
 	padding: 0;
 	width:542px;
 	height:300px;
 	position: absolute;
 	border:1px solid black;
 }
+marker
 
 #map-container{
 	position: relative;
 }
 
 #loading-spinner{
-    position: absolute;
+    position: relative;
     width:100px;
     height:100px;
-    margin-left: 221px;
     margin-top: 100px;
+    margin-left: 222px;
     -moz-border-radius:100px;
     -webkit-border-radius:100px;
     float:left;
@@ -102,7 +116,11 @@ body{
     -moz-box-sizing:border-box; 
     box-sizing:border-box;
 }
- 
+
+#info-window{
+    padding: 5px 20px 20px 20px;
+}
+
 .accordion {
     margin-top:310px;
     overflow:hidden;
@@ -120,7 +138,6 @@ body{
     transition:all linear 0.15s;
     font-size:1.200em;
     text-shadow:0px 1px 0px #1a1a1a;
-    color:#fff;
 }
  
 .accordion-section-title.active, .accordion-section-title:hover {
@@ -131,10 +148,13 @@ body{
 .accordion-section:last-child .accordion-section-title {
     border-bottom:none;
 }
- 
+
+#info-window-title, #info-window-paragraph{
+    margin:0px 0px 0px 0px;
+}
+
 .accordion-section-content {
     padding:15px;
     display:none;
     background-color:#808080;
-    color:#fff;
 }

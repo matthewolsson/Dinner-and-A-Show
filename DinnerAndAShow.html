@@ -5,16 +5,19 @@
 	<link href='http://fonts.googleapis.com/css?family=Coming+Soon' rel='stylesheet' type='text/css'>
 	<title>Dinner and A Show&trade;</title>
 	<link rel="stylesheet" type="text/css" href="css/styles.css">
+	<link href='http://fonts.googleapis.com/css?family=Dancing+Script:700' rel='stylesheet' type='text/css'>
+	<link href='http://fonts.googleapis.com/css?family=Share:700italic' rel='stylesheet' type='text/css'>
 	<script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
 	<script src="js/APIScript.js"></script>
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDjaCd3Vf_Jy-BubQ1y_-cKxzw8WodRiw8"></script>
 </head>
 <body>
 <div>
-	<h1>Dinner and A Show</h1>
-	<p><i>Enter your current address and time to see restuarants and movies in your area</i></p>
-	<button type="button" id="search">Find Dinner and A Show!</button> <br />
-		Movie Genre -&gt; <select id="Genre">
+	<h1>Dinner and A Show!</h1>
+	Input a custom address or area code -&gt; <input id="addressSearch" type="text" size="30" maxlength="60" value="ex:5555 Fake St." autofocus />
+	<h2>OR!</h2>
+	<button type="button" id="autoAddress">Find My Address For Me</button> <br /><br /><br /><br /><br />
+	Movie Genre -&gt; <select id="Genre">
 		<option value=" ">All</option>
 		<option value="Action">Action</option>
 		<option value="Adventure">Adventure</option>
@@ -38,10 +41,9 @@
 		<option value="Thriller">Thriller</option>
 		<option value="War">War</option>
 		<option value="Western">Western</option>
-	</select> <br />
-	<button type="button" id="autoAddress">Find My Address For Me</button> <br />
-	Input your current address or area code -&gt; <input id="addressSearch" type="text" size="30" maxlength="60" value="ex:5555 Fake St." autofocus /> <br />
-	What are you in the mood to eat? -&gt; <input id="foodSearch" type="text" size="30" maxlength="60" value="ex:pizza,sushi" autofocus />
+	</select><br />
+	What are you in the mood to eat? -&gt; <input id="foodSearch" type="text" size="30" maxlength="60" value="ex:pizza,sushi" autofocus /> <br /><br />
+	<button type="button" id="search">Find Dinner and A Show!</button> 
 	<div id="map-container">
 		<!-- http://kilianvalkhof.com/2010/css-xhtml/css3-loading-spinners-without-images/     http://kilianvalkhof.com/uploads/spinners/   -->
 		<div id="loading-spinner" style="-webkit-transform: scale(0.5) rotate(45deg);">
@@ -56,7 +58,7 @@
         </div>
 		<div id="map-div"></div>
 	</div>
-	<div class="accordion">MOVIES GO HERE</div>
+	<div class="accordion"></div>
 </div>
 
 </body>

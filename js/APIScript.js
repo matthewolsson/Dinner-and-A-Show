@@ -1,27 +1,32 @@
 "use strict"
 
 var RETURN_KEY = 13; // constant to enable searching with the enter key
-var map,infowindow,geocoder,markers = [];
-	
+
+var map,infowindow,geocoder,markers = [],autoLat,autoLong,addressTimeout,searchedFood,searchedAddress,yelpURL;;
+// movie lat and long	
 var mLongitude,mLatitude;
 var movie_base_url = "http://data.tmsapi.com/v1/movies/showings?";
 var movie_api_key = "zaebbj25z9taddgcmktq4tnn";
+// current date
 var date;
+
 window.onload = init;
 
-var searchedFood,searchedAddress;
-var spinCount = 0; // for the loading spinner
+// used for the loading spinner
+var spinCount = 0;
 var spinnerCaller;
 var elem;
 
+// initializes event listeners and certain variables. 
 function init(){
 	document.querySelector("#search").onclick = searchAddress;
+	document.querySelector("#autoAddress").onclick = getAutoAddress;
 
 	searchedFood = document.getElementById("foodSearch");
 	searchedFood.addEventListener("click", function() {if(searchedFood.value === "ex:pizza,sushi"){searchedFood.value = '';}});
 	searchedFood.onkeyup = doKeyup;
 	searchedAddress = document.getElementById("addressSearch");
-	searchedAddress.addEventListener("click", function() {if(searchedAddress.value === "ex:5555 Fake St."){searchedAddress.value = '';}});
+	searchedAddress.addEventListener("click", function() {if(searchedAddress.value === "ex:5555 Fake St."){searchedAddress.value = '';}if(searchedAddress.value === "Address NOT Found!" || searchedAddress.value === "Address Found!"){autoLat = undefined; autoLong = undefined; searchedAddress.value = '';}});
 	searchedAddress.onkeyup = doKeyup;
 
 	elem = document.getElementById('loading-spinner');
@@ -36,6 +41,40 @@ function init(){
 
 }
 
+// retrieves the users location from geoservices
+function getAutoAddress() {
+    if (navigator.geolocation) {
+    	// run spinner
+    	elem.style.visibility = "visible";
+		spinnerCaller = setInterval(function(){rotate();}, 100);
+		// get position
+        navigator.geolocation.getCurrentPosition(showPosition);
+        // set timer so if it doesn't work in 5 seconds abandon ship
+        addressTimeout = setTimeout(function() {
+        		// kill timer
+        		clearInterval(spinnerCaller); 
+        		elem.style.visibility = "hidden";
+                searchedAddress.value = "Address NOT Found!";
+                alert("Geolocation is not supported by this browser.");
+        	}, 5000);
+    } else {
+    	// if geolocation isn't supported then abandon ship
+        alert("Geolocation is not supported by this browser.");
+        searchedAddress.value = "Address NOT Found!";
+    }
+}
+
+// run when the geoservices have confirmed an address for the user
+function showPosition(position) {
+	clearTimeout(addressTimeout);
+	clearInterval(spinnerCaller); 
+    elem.style.visibility = "hidden";
+	searchedAddress.value = "Address Found!";
+    autoLat = position.coords.latitude;
+    autoLong = position.coords.longitude; 
+}
+
+// formats the yelpURL api query
 function constructYelpURL() {
     var mapBounds = map.getBounds();
     var URL = "http://api.yelp.com/" +
@@ -51,11 +90,13 @@ function constructYelpURL() {
     return encodeURI(URL);
 }
 
+// interprets the yelp results and uses the data appropriately
 function handleYelpResults(data){
     if(data.message.text == "OK") {
-    	//console.log(data.businesses.length);
         if (data.businesses.length == 0) {
             alert("No businesses were found near your location");
+            clearInterval(spinnerCaller); 
+            elem.style.visibility = "hidden";
             return;
         }
         for(var i=0; i<data.businesses.length; i++) {
@@ -63,7 +104,7 @@ function handleYelpResults(data){
         	if(data.businesses[i].latitude === undefined){
         		var formattedAddress = data.businesses[i].address1;
         		formattedAddress += (" " + data.businesses[i].city + " " + data.businesses[i].state_code + " " + data.businesses[i].zip);
-        		addressLookup(formattedAddress,data.businesses[i].name);
+        		addressLookup(formattedAddress,data.businesses[i]);
         	} else {
             	addMarker(data.businesses[i].latitude,data.businesses[i].longitude,data.businesses[i].name);
         	}
@@ -73,46 +114,56 @@ function handleYelpResults(data){
     } else { alert("Error: " + data.message.text); }
 }
 
-// Finds entered address, places a marker there, runs callback function
+// In the event the user manually entered an address this service finds it
 // https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple
-function addressLookup(address, name, callback){
+function addressLookup(address, business, callback){
 	geocoder.geocode( { 'address': address}, function(results, status) {
 		if (status == google.maps.GeocoderStatus.OK) {
-		    addMarker(results[0].geometry.location.k,results[0].geometry.location.B,name);
+		    addMarker(results[0].geometry.location.k,results[0].geometry.location.B,business);
 		} else if(status === google.maps.GeocoderStatus.OVER_QUERY_LIMIT) {
 			setTimeout(function() {
-                console.log("struggling with geocoder api, loading...");
-                addressLookup(address,name,callback);
+                addressLookup(address,business,callback);
             }, 2000);
-		} else { alert('Address could not be found: ' + status); }
+		} else { clearInterval(spinnerCaller); elem.style.visibility = "hidden"; alert('Address could not be found: ' + status); }
 		if(callback != undefined){callback(results[0].geometry.location);} // closures! neato!
 	});
 	
 }
 
-function doKeyup(e){ // search on enter key press
+// search on enter key press
+function doKeyup(e){
 	if(e.keyCode == RETURN_KEY){ searchAddress(); }
 }
 
-var yelpURL;
+// Formats any manually input addresses and passes them along with the geolocator
+// ALSO used in tandem with the yelpAPI when it does not return a lat and long but does return an address
 function searchAddress(){
+	// start spinner
 	elem.style.visibility = "visible";
 	spinnerCaller = setInterval(function(){rotate();}, 100);
 	clearMarkers();
 	// trim spaces, if no address then exit
 	searchedAddress.value = searchedAddress.value.trim();
 	if(searchedAddress.value < 1) return;
-	
-	var afterLookup = function(locationOfFirstResult){
-		map.setCenter(locationOfFirstResult);
-		map.setZoom(14);
-		searchYelp();
-	};
+	// The address is being looked up
+	if(autoLong === undefined && autoLat === undefined){
+		var afterLookup = function(locationOfFirstResult){
+			map.setCenter(locationOfFirstResult);
+			map.setZoom(13);
+			searchYelp();
+		};
 
-	addressLookup(searchedAddress.value,"Your Location",afterLookup);
+		addressLookup(searchedAddress.value,"Your Location",afterLookup);
+	}else{ // The address was provided by an auto search
+		addMarker(autoLat,autoLong,"Your Location");
+		map.setCenter(new google.maps.LatLng(autoLat, autoLong));
+		map.setZoom(13);
+		searchYelp();
+	}
     return false;
 }
 
+// queries the yelp API
 function searchYelp(){
 	yelpURL = constructYelpURL();
 	var script = document.createElement('script');
@@ -122,11 +173,22 @@ function searchYelp(){
     head.appendChild(script);
 }
 
-function addMarker(latitude,longitude,title){
+// adds markers for the users position and nearby yelp results that match
+function addMarker(latitude,longitude,business){
 	var position = {lat:latitude,lng:longitude};
 	var marker = new google.maps.Marker({position:position, map:map});
-	marker.title = title;
-	google.maps.event.addListener(marker, 'click', function(e){ makeInfoWindow(position,title); });
+	marker.title = business.name;
+	if(business != "Your Location"){
+		var formattedYelpWindow = "<div id=\"info-window\"><h2 id=\"info-window-title\">" + business.name + "</h2>";
+		formattedYelpWindow += "<img src=\"" + business.photo_url + "\" \>";
+		formattedYelpWindow += "<p id=\"info-window-paragraph\">Average rating: " + business.avg_rating + "/5 Stars</p>";
+		formattedYelpWindow += "<p id=\"info-window-paragraph\">Distance: " + (Math.round(business.distance * 10)/10) + " Miles<p>";
+		formattedYelpWindow += "<p id=\"info-window-paragraph\">Phone Number: " + business.phone + "<p></div>";
+		google.maps.event.addListener(marker, 'click', function(e){ makeInfoWindow(position,formattedYelpWindow); });
+	}else{
+		var formattedYelpWindow = "<div id=\"info-window\"><h2>" + business + "</h2></div>";
+		google.maps.event.addListener(marker, 'click', function(e){ makeInfoWindow(position,formattedYelpWindow); });
+	}
 	markers.push(marker);
 	if(markers.length == 1)
 	{
@@ -136,15 +198,17 @@ function addMarker(latitude,longitude,title){
 	}
 }
 
+// Constructs the info window displayed when a marker is clicked on the map
 function makeInfoWindow(position,msg){
 	if(infowindow) infowindow.close();
 	infowindow = new google.maps.InfoWindow({
-		map: map,
-		position:position,
-		content:msg
+	map: map,
+	position:position,
+	content:msg
 	});
 }
 
+// clears the current markers on the map
 function clearMarkers(){
 	if(infowindow){ infowindow.close(); }
 	for(var i = 0; i < markers.length; i++){
@@ -153,6 +217,7 @@ function clearMarkers(){
 	markers = [];
 }
 
+// queries the movie API 
 function searchMovies(){
 	date = new Date();
 	var day = date.getDate();
@@ -174,10 +239,10 @@ function searchMovies(){
 		"&lat=" + mLatitude + 
 		"&lng=" + mLongitude + 
 		"&api_key=" + movie_api_key;
-	console.log(requestUri);
 	$.getJSON(requestUri).done(function(data){movieJsonLoaded(data);});
 }
-		
+
+// If the movie database returns data for nearby theatres here is where it gets interpreted and formatted	
 function movieJsonLoaded(obj){
 	if(obj.error){
 		document.querySelector(".accordion").innerHTML = "<b>No Results Found</b>";
@@ -256,6 +321,7 @@ function movieJsonLoaded(obj){
 	}
 }
 
+//Places the movie results in a jquery accordion
 //http://inspirationalpixels.com/tutorials/creating-an-accordion-with-html-css-jquery
 function setAccordion() {
     function close_accordion_section(temp) {
@@ -275,6 +341,7 @@ function setAccordion() {
     });
 }
 
+//Gets the showtimes from movie entries and displays them if the time has not already occured
 function getShowtimes(movies){
 	var line, theater, time, ticektUrl;
 	var count = 0; //used to check if there are any showtimes for the movie left
@@ -392,4 +459,3 @@ function rotate() {
     if (spinCount==360) { spinCount = 0 }
     spinCount+=45;
 }
-
