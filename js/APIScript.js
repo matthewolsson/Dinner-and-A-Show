@@ -9,6 +9,7 @@ var movie_base_url = "http://data.tmsapi.com/v1/movies/showings?";
 var movie_api_key = "zaebbj25z9taddgcmktq4tnn";
 // current date
 var date;
+var range;
 
 window.onload = init;
 
@@ -38,7 +39,6 @@ function init(){
 	};
 	map = new google.maps.Map(document.getElementById('map-div'),mapOptions);
 	geocoder = new google.maps.Geocoder(); // used for address lookup
-
 }
 
 // retrieves the users location from geoservices
@@ -49,14 +49,6 @@ function getAutoAddress() {
 		spinnerCaller = setInterval(function(){rotate();}, 100);
 		// get position
         navigator.geolocation.getCurrentPosition(showPosition);
-        // set timer so if it doesn't work in 5 seconds abandon ship
-        addressTimeout = setTimeout(function() {
-        		// kill timer
-        		clearInterval(spinnerCaller); 
-        		elem.style.visibility = "hidden";
-                searchedAddress.value = "Address NOT Found!";
-                alert("Geolocation is not supported by this browser.");
-        	}, 5000);
     } else {
     	// if geolocation isn't supported then abandon ship
         alert("Geolocation is not supported by this browser.");
@@ -66,7 +58,6 @@ function getAutoAddress() {
 
 // run when the geoservices have confirmed an address for the user
 function showPosition(position) {
-	clearTimeout(addressTimeout);
 	clearInterval(spinnerCaller); 
     elem.style.visibility = "hidden";
 	searchedAddress.value = "Address Found!";
@@ -139,6 +130,7 @@ function doKeyup(e){
 // ALSO used in tandem with the yelpAPI when it does not return a lat and long but does return an address
 function searchAddress(){
 	// start spinner
+    range = document.querySelector("#Distance").value;
 	elem.style.visibility = "visible";
 	spinnerCaller = setInterval(function(){rotate();}, 100);
 	clearMarkers();
@@ -148,16 +140,53 @@ function searchAddress(){
 	// The address is being looked up
 	if(autoLong === undefined && autoLat === undefined){
 		var afterLookup = function(locationOfFirstResult){
-			map.setCenter(locationOfFirstResult);
-			map.setZoom(13);
-			searchYelp();
+            var tempCircle;
+            var circleOptions = {
+                strokeColor: '#000000',
+                strokeOpacity: 0.0,
+                strokeWeight: 0,
+                fillColor: '#000000',
+                fillOpacity: 0.0,
+                map: map,
+                center: locationOfFirstResult,
+                radius: 5
+            };
+            switch(range){
+                case "5":circleOptions.radius = 8047/3; break;
+                case "10":circleOptions.radius = 16093/3; break;
+                case "15":circleOptions.radius = 24140/3; break;
+                case "20":circleOptions.radius = 32187/3; break;
+                case "25":circleOptions.radius = 40234/3; break;
+            }
+            tempCircle = new google.maps.Circle(circleOptions);
+            map.fitBounds(tempCircle.getBounds()); 
+    		searchYelp();
 		};
-
 		addressLookup(searchedAddress.value,"Your Location",afterLookup);
 	}else{ // The address was provided by an auto search
 		addMarker(autoLat,autoLong,"Your Location");
-		map.setCenter(new google.maps.LatLng(autoLat, autoLong));
-		map.setZoom(13);
+
+		var tempCircle;
+        var circleOptions = {
+              strokeColor: '#000000',
+              strokeOpacity: 0.0,
+              strokeWeight: 0,
+              fillColor: '#000000',
+              fillOpacity: 0.0,
+              map: map,
+              center: (new google.maps.LatLng(autoLat, autoLong)),
+              radius: 5
+        };
+        switch(range){
+            case "5":circleOptions.radius = 8047/3; break;
+            case "10":circleOptions.radius = 16093/3; break;
+            case "15":circleOptions.radius = 24140/3; break;
+            case "20":circleOptions.radius = 32187/3; break;
+            case "25":circleOptions.radius = 40234/3; break;
+        }
+        tempCircle = new google.maps.Circle(circleOptions);
+        map.fitBounds(tempCircle.getBounds()); 
+
 		searchYelp();
 	}
     return false;
@@ -194,7 +223,8 @@ function addMarker(latitude,longitude,business){
 	{
 		mLatitude = latitude;
 		mLongitude = longitude;
-		searchMovies();
+		//searchMovies();
+        console.log("Movies");
 	}
 }
 
@@ -223,7 +253,6 @@ function searchMovies(){
 	var day = date.getDate();
 	var month = date.getMonth() + 1;
 	var year = date.getFullYear();
-	var range = document.querySelector("#Distance").value;
 	
 	if(day<10) {
 		day='0'+day;
