@@ -223,8 +223,7 @@ function addMarker(latitude,longitude,business){
 	{
 		mLatitude = latitude;
 		mLongitude = longitude;
-		//searchMovies();
-        console.log("Movies");
+		searchMovies();
 	}
 }
 
