@@ -223,6 +223,7 @@ function searchMovies(){
 	var day = date.getDate();
 	var month = date.getMonth() + 1;
 	var year = date.getFullYear();
+	var range = document.querySelector("#Distance").value;
 	
 	if(day<10) {
 		day='0'+day;
@@ -238,6 +239,7 @@ function searchMovies(){
 		"-" + day + 
 		"&lat=" + mLatitude + 
 		"&lng=" + mLongitude + 
+		"&range=" + range +
 		"&api_key=" + movie_api_key;
 	$.getJSON(requestUri).done(function(data){movieJsonLoaded(data);});
 }

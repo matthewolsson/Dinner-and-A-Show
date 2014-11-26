@@ -45,7 +45,7 @@ body{
 	top:1px;
 }
 
-#addressSearch,#foodSearch,#Genre{
+#addressSearch,#foodSearch,#Genre,#Distance{
 	font-size:16px;
     background-color: #666666;
     color: #E6B800;
